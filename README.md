@@ -9,6 +9,9 @@
 [![MCP Spec](https://img.shields.io/badge/MCP_Spec-2025--03-blue.svg)](https://spec.modelcontextprotocol.io)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Examples-3178C6.svg)](examples/typescript/)
 [![Python](https://img.shields.io/badge/Python-Examples-3776AB.svg)](examples/python/)
+[![Go](https://img.shields.io/badge/Go-Examples-00ADD8.svg)](examples/go/)
+[![Rust](https://img.shields.io/badge/Rust-Examples-DEA584.svg)](examples/rust/)
+[![Java](https://img.shields.io/badge/Java-Examples-ED8B00.svg)](examples/java/)
 
 **84,000+ developers** starred an MCP server list. Zero had a guide on how to actually build one.
 
@@ -136,19 +139,63 @@ npx @modelcontextprotocol/inspector python server.py
 | 06 | [Security & Auth](guides/06-security.md) | Advanced | Credential management, input validation, sandboxing |
 | 07 | [Production Deployment](guides/07-production.md) | Advanced | Docker, monitoring, scaling, and reliability |
 | 08 | [Performance & Optimization](guides/08-performance.md) | Advanced | Caching, pagination, streaming large datasets |
+| 09 | [Debugging](guides/09-debugging.md) | Intermediate | Inspector, logging, common issues and fixes |
 
 ## Examples
 
-Real-world MCP servers you can learn from and adapt.
+Real-world MCP servers you can learn from and adapt. Each includes a README, complete source code, and instructions for connecting to AI clients.
 
-| Example | Language | What It Demonstrates |
-|---------|----------|---------------------|
-| [Database Explorer](examples/typescript/database-explorer/) | TypeScript | SQL queries as tools, schema as resources |
-| [REST API Wrapper](examples/typescript/rest-api-wrapper/) | TypeScript | Turning any REST API into an MCP server |
-| [File Search](examples/python/file-search/) | Python | File system access with glob patterns |
-| [Web Scraper](examples/python/web-scraper/) | Python | Fetching and parsing web content |
+### TypeScript
 
-> Each example includes a README, complete source code, tests, and instructions for connecting to Claude Desktop.
+| Example | What It Demonstrates |
+|---------|---------------------|
+| [Database Explorer](examples/typescript/database-explorer/) | SQL queries as tools, schema as resources, read-only enforcement |
+| [REST API Wrapper](examples/typescript/rest-api-wrapper/) | Turning any REST API into an MCP server (HackerNews) |
+
+### Python
+
+| Example | What It Demonstrates |
+|---------|---------------------|
+| [File Search](examples/python/file-search/) | Sandboxed file access with content search |
+| [Web Scraper](examples/python/web-scraper/) | Fetching and parsing web content (stdlib only) |
+
+### Go
+
+| Example | What It Demonstrates |
+|---------|---------------------|
+| [Hello Server](examples/go/hello-server/) | Tools and resources with mcp-go SDK |
+
+### Rust
+
+| Example | What It Demonstrates |
+|---------|---------------------|
+| [Hello Server](examples/rust/hello-server/) | Trait-based server with rmcp SDK |
+
+### Java
+
+| Example | What It Demonstrates |
+|---------|---------------------|
+| [Hello Server](examples/java/hello-server/) | Builder-based server with official Java SDK |
+
+## Recipes
+
+Quick, copy-paste solutions for common MCP tasks. See the [full recipe index →](recipes/)
+
+| Recipe | What It Solves |
+|--------|---------------|
+| [Environment Config](recipes/environment-config.md) | Load and validate env vars at startup |
+| [Graceful Shutdown](recipes/graceful-shutdown.md) | Clean up resources on exit |
+| [Structured Logging](recipes/structured-logging.md) | Log to stderr without breaking protocol |
+| [Paginated Results](recipes/paginated-results.md) | Return large datasets in pages |
+| [Long-Running Ops](recipes/long-running-operations.md) | Report progress on slow tasks |
+| [Confirmation Pattern](recipes/confirmation-pattern.md) | Two-step tools for dangerous operations |
+| [Batch Operations](recipes/batch-operations.md) | Handle partial failures in bulk ops |
+| [REST API Client](recipes/rest-api-client.md) | Fetch wrapper with auth, retries, timeouts |
+| [Database Connection](recipes/database-connection.md) | Connection pooling and lifecycle |
+| [Caching Layer](recipes/caching-layer.md) | In-memory TTL cache |
+| [Rate Limiter](recipes/rate-limiter.md) | Throttle external API calls |
+| [Input Sanitization](recipes/input-sanitization.md) | Validate all tool inputs |
+| [Path Sandboxing](recipes/path-sandboxing.md) | Restrict file access to allowed dirs |
 
 ## Templates
 
@@ -158,8 +205,6 @@ Copy-paste starters to skip the boilerplate.
 |----------|----------|----------|
 | [Minimal Server](templates/typescript-minimal/) | TypeScript | Bare-bones starting point |
 | [Minimal Server](templates/python-minimal/) | Python | Bare-bones starting point |
-| [API Wrapper](templates/typescript-api-wrapper/) | TypeScript | Wrap any REST API |
-| [Database Server](templates/typescript-database/) | TypeScript | Expose a database via MCP |
 
 ## Patterns at a Glance
 
@@ -201,15 +246,14 @@ What does your server do?
 
 ## SDK Comparison
 
-| Feature | TypeScript SDK | Python SDK |
-|---------|---------------|------------|
-| Package | `@modelcontextprotocol/sdk` | `mcp` |
-| Server class | `McpServer` | `FastMCP` |
-| Transport | `StdioServerTransport` | `stdio_server()` |
-| Tool definition | `server.tool(name, desc, schema, handler)` | `@mcp.tool()` decorator |
-| Resource definition | `server.resource(name, uri, handler)` | `@mcp.resource()` decorator |
-| Maturity | More mature, more examples | Newer, rapidly improving |
-| Best for | Production servers, complex logic | Quick prototypes, simple servers |
+| | TypeScript | Python | Go | Rust | Java |
+|---|---|---|---|---|---|
+| **Package** | `@modelcontextprotocol/sdk` | `mcp` | `mcp-go` | `rmcp` | `io.modelcontextprotocol:sdk` |
+| **Server setup** | `new McpServer(...)` | `FastMCP(...)` | `server.NewMCPServer(...)` | `impl Server` trait | `McpServer.sync(...)` |
+| **Tool definition** | `server.tool()` | `@mcp.tool()` | `s.AddTool()` | `fn list_tools()` | `.tool(new SyncToolSpec)` |
+| **Transport** | `StdioServerTransport` | `mcp.run()` | `server.ServeStdio()` | `stdio()` | `StdioServerTransportProvider` |
+| **Maturity** | Most mature | Rapidly improving | Active | Early | Active (Spring AI) |
+| **Best for** | Production servers | Quick prototypes | Fast binaries | Performance-critical | Enterprise / Spring |
 
 ## Roadmap
 
