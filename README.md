@@ -2,8 +2,6 @@
 
 # The MCP Handbook
 
-![Uploading Gemini_Generated_Image_3ccm5d3ccm5d3ccm.png…]()
-
 
 ### The missing developer guide for the Model Context Protocol
 
