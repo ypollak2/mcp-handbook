@@ -1,5 +1,7 @@
 <div align="center">
 
+  <img src="assets/mcp-handbook-cover.png" alt="MCP Handbook cover illustration" width="560" />
+
 # The MCP Handbook
 
 
@@ -7,18 +9,25 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![CI](https://github.com/ypollak2/mcp-handbook/actions/workflows/ci.yml/badge.svg)](https://github.com/ypollak2/mcp-handbook/actions/workflows/ci.yml)
 [![MCP Spec](https://img.shields.io/badge/MCP_Spec-2025--03-blue.svg)](https://spec.modelcontextprotocol.io)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Examples-3178C6.svg)](examples/typescript/)
 [![Python](https://img.shields.io/badge/Python-Examples-3776AB.svg)](examples/python/)
 [![Go](https://img.shields.io/badge/Go-Examples-00ADD8.svg)](examples/go/)
 [![Rust](https://img.shields.io/badge/Rust-Examples-DEA584.svg)](examples/rust/)
 [![Java](https://img.shields.io/badge/Java-Examples-ED8B00.svg)](examples/java/)
+[![C%23](https://img.shields.io/badge/C%23-Examples-512BD4.svg)](examples/csharp/)
+[![Kotlin](https://img.shields.io/badge/Kotlin-Examples-7F52FF.svg)](examples/kotlin/)
+
+**English** | [中文 (README + Guides 01-03)](i18n/zh-CN/README.md)
 
 **84,000+ developers** starred an MCP server list. Zero had a guide on how to actually build one.
 
 Until now.
 
 [Get Started](#quick-start) | [Guides](#guides) | [Examples](#examples) | [Templates](#templates) | [Contribute](#contributing)
+
+**Verified in CI**: Every example and starter template is validated on GitHub Actions.
 
 </div>
 
@@ -179,6 +188,31 @@ Real-world MCP servers you can learn from and adapt. Each includes a README, com
 |---------|---------------------|
 | [Hello Server](examples/java/hello-server/) | Builder-based server with official Java SDK |
 
+### C#
+
+| Example | What It Demonstrates |
+|---------|---------------------|
+| [Hello Server](examples/csharp/hello-server/) | Hosted server with official C# SDK and attribute-based tools |
+| [REST API Wrapper](examples/csharp/rest-api-wrapper/) | Hacker News API wrapper with `HttpClient` injection and official C# SDK |
+
+### Kotlin
+
+| Example | What It Demonstrates |
+|---------|---------------------|
+| [Hello Server](examples/kotlin/hello-server/) | Coroutine-friendly stdio server with the official Kotlin SDK |
+| [REST API Wrapper](examples/kotlin/rest-api-wrapper/) | Hacker News API wrapper with Ktor client and official Kotlin SDK |
+
+## Language Matrix
+
+Use this table to pick the best starting point for your stack. Today the deepest lanes are **TypeScript** and **Python**; the fastest-growing official SDK lanes in this repo are **C#** and **Kotlin**.
+
+| Pattern | TypeScript | Python | Go | Rust | Java | C# | Kotlin |
+|---|---|---|---|---|---|---|---|
+| Minimal / Hello | [Minimal Template](templates/typescript-minimal/) | [Minimal Template](templates/python-minimal/) | [Hello Server](examples/go/hello-server/) | [Hello Server](examples/rust/hello-server/) | [Hello Server](examples/java/hello-server/) | [Hello Server](examples/csharp/hello-server/) | [Hello Server](examples/kotlin/hello-server/) |
+| HTTP / API | [REST API Wrapper](examples/typescript/rest-api-wrapper/) | [Web Scraper](examples/python/web-scraper/) | - | - | - | [REST API Wrapper](examples/csharp/rest-api-wrapper/) | [REST API Wrapper](examples/kotlin/rest-api-wrapper/) |
+| Database | [Database Explorer](examples/typescript/database-explorer/) | - | - | - | - | - | - |
+| File System | - | [File Search](examples/python/file-search/) | - | - | - | - | - |
+
 ## Recipes
 
 Quick, copy-paste solutions for common MCP tasks. See the [full recipe index →](recipes/)
@@ -248,14 +282,14 @@ What does your server do?
 
 ## SDK Comparison
 
-| | TypeScript | Python | Go | Rust | Java |
-|---|---|---|---|---|---|
-| **Package** | `@modelcontextprotocol/sdk` | `mcp` | `mcp-go` | `rmcp` | `io.modelcontextprotocol:sdk` |
-| **Server setup** | `new McpServer(...)` | `FastMCP(...)` | `server.NewMCPServer(...)` | `impl Server` trait | `McpServer.sync(...)` |
-| **Tool definition** | `server.tool()` | `@mcp.tool()` | `s.AddTool()` | `fn list_tools()` | `.tool(new SyncToolSpec)` |
-| **Transport** | `StdioServerTransport` | `mcp.run()` | `server.ServeStdio()` | `stdio()` | `StdioServerTransportProvider` |
-| **Maturity** | Most mature | Rapidly improving | Active | Early | Active (Spring AI) |
-| **Best for** | Production servers | Quick prototypes | Fast binaries | Performance-critical | Enterprise / Spring |
+| | TypeScript | Python | Go | Rust | Java | C# | Kotlin |
+|---|---|---|---|---|---|---|---|
+| **Package** | `@modelcontextprotocol/sdk` | `mcp` | `mcp-go` | `rmcp` | `io.modelcontextprotocol:sdk` | `ModelContextProtocol` | `io.modelcontextprotocol:kotlin-sdk-server` |
+| **Server setup** | `new McpServer(...)` | `FastMCP(...)` | `server.NewMCPServer(...)` | `impl Server` trait | `McpServer.sync(...)` | `builder.Services.AddMcpServer()` | `Server(Implementation(...), ServerOptions(...))` |
+| **Tool definition** | `server.tool()` | `@mcp.tool()` | `s.AddTool()` | `fn list_tools()` | `.tool(new SyncToolSpec)` | `[McpServerTool]` | `server.addTool(...)` |
+| **Transport** | `StdioServerTransport` | `mcp.run()` | `server.ServeStdio()` | `stdio()` | `StdioServerTransportProvider` | `.WithStdioServerTransport()` | `StdioServerTransport(...)` |
+| **Maturity** | Most mature | Rapidly improving | Active | Early | Active (Spring AI) | Official, fast-moving | Official, fast-moving |
+| **Best for** | Production servers | Quick prototypes | Fast binaries | Performance-critical | Enterprise / Spring | .NET services | Kotlin / JVM teams |
 
 ## Roadmap
 

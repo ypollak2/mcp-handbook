@@ -19,17 +19,42 @@ mcp = FastMCP("file-search")
 ALLOWED_ROOT = os.environ.get("FILE_ROOT", os.getcwd())
 
 
+def allowed_root() -> Path:
+    """Return the resolved sandbox root."""
+    return Path(ALLOWED_ROOT).resolve()
+
+
 def validate_path(file_path: str) -> Path:
     """Resolve and validate that a path is within the allowed root."""
     resolved = Path(file_path).resolve()
-    root = Path(ALLOWED_ROOT).resolve()
+    root = allowed_root()
 
-    if not str(resolved).startswith(str(root)):
+    try:
+        resolved.relative_to(root)
+    except ValueError as exc:
         raise ValueError(
             f"Access denied: {file_path} is outside the allowed directory ({ALLOWED_ROOT})"
-        )
+        ) from exc
 
     return resolved
+
+
+def iter_allowed_files(pattern: str) -> list[Path]:
+    """Expand a glob pattern but keep results inside the sandbox root."""
+    root = allowed_root()
+    search_pattern = str(root / pattern)
+    files: list[Path] = []
+
+    for match in globlib.glob(search_pattern, recursive=True):
+        if not os.path.isfile(match):
+            continue
+
+        try:
+            files.append(validate_path(match))
+        except ValueError:
+            continue
+
+    return files
 
 
 # --- Tools ---
@@ -43,18 +68,14 @@ def search_files(pattern: str, max_results: int = 20) -> str:
         pattern: Glob pattern like '**/*.py' or 'src/**/*.ts'
         max_results: Maximum number of results to return
     """
-    root = Path(ALLOWED_ROOT).resolve()
-    search_pattern = str(root / pattern)
-    matches = globlib.glob(search_pattern, recursive=True)
-
-    # Filter to files only (not directories) and limit results
-    files = [m for m in matches if os.path.isfile(m)][:max_results]
+    root = allowed_root()
+    files = iter_allowed_files(pattern)[:max_results]
 
     if not files:
         return f'No files found matching "{pattern}" in {ALLOWED_ROOT}'
 
     # Show relative paths for cleaner output
-    relative = [os.path.relpath(f, ALLOWED_ROOT) for f in files]
+    relative = [os.path.relpath(f, root) for f in files]
     return "\n".join(relative)
 
 
@@ -98,9 +119,8 @@ def search_content(pattern: str, file_pattern: str = "**/*", max_results: int = 
         file_pattern: Glob pattern to filter which files to search
         max_results: Maximum number of matches to return
     """
-    root = Path(ALLOWED_ROOT).resolve()
-    search_glob = str(root / file_pattern)
-    files = [f for f in globlib.glob(search_glob, recursive=True) if os.path.isfile(f)]
+    root = allowed_root()
+    files = iter_allowed_files(file_pattern)
 
     matches: list[str] = []
     pattern_lower = pattern.lower()
@@ -113,7 +133,7 @@ def search_content(pattern: str, file_pattern: str = "**/*", max_results: int = 
             with open(file_path, "r", errors="replace") as f:
                 for line_num, line in enumerate(f, 1):
                     if pattern_lower in line.lower():
-                        rel_path = os.path.relpath(file_path, ALLOWED_ROOT)
+                        rel_path = os.path.relpath(file_path, root)
                         matches.append(f"{rel_path}:{line_num}: {line.rstrip()}")
 
                         if len(matches) >= max_results:
@@ -135,13 +155,14 @@ def list_directory(path: str = ".") -> str:
         path: Directory path relative to root (default: root directory)
     """
     full_path = validate_path(os.path.join(ALLOWED_ROOT, path))
+    root = allowed_root()
 
     if not full_path.is_dir():
         return f"Not a directory: {path}"
 
     entries: list[str] = []
     for entry in sorted(full_path.iterdir()):
-        rel = os.path.relpath(entry, ALLOWED_ROOT)
+        rel = os.path.relpath(entry, root)
         if entry.is_dir():
             entries.append(f"  {rel}/")
         else:
@@ -166,7 +187,7 @@ def list_directory(path: str = ".") -> str:
 @mcp.resource("file://overview")
 def directory_overview() -> str:
     """Overview of the root directory structure."""
-    root = Path(ALLOWED_ROOT).resolve()
+    root = allowed_root()
 
     file_count = 0
     dir_count = 0

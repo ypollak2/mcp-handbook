@@ -29,18 +29,19 @@ Thank you for your interest in contributing! This handbook is a community effort
 
 ### Code Examples
 - All code examples must be complete and runnable
+- New or changed examples must include tests or CI smoke coverage
 - Include both TypeScript and Python where possible
 - Add comments for non-obvious decisions only
-- Test your examples before submitting
+- Test your examples locally and keep CI green
 
 ### Example Servers
 Each example server should include:
 ```
 examples/<language>/<name>/
 ├── README.md          # What it does, how to run it, what it teaches
-├── src/               # Source code
-├── package.json       # (TypeScript) or pyproject.toml (Python)
-└── tests/             # At least one test
+├── source files       # Keep the runnable entrypoint obvious
+├── build file         # package.json / pyproject.toml / go.mod / Cargo.toml / pom.xml / *.csproj
+└── tests/             # Recommended for non-trivial examples
 ```
 
 ### Commit Messages
