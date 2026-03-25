@@ -13,13 +13,13 @@
 
 ## Phase 2: Intermediate
 - [x] Guide 04: Error Handling
-- [x] Guide 05: Testing MCP Servers
+- [x] Guide 05: Testing MCP Servers (deep dive: harness, mocking, property-based, CI/CD)
+- [x] Testing framework and helpers (reusable test harness, factories, coverage)
 - [ ] Template: API Wrapper (TypeScript)
 - [ ] Template: Database Server (TypeScript)
-- [ ] MCP Inspector guide and tips
 
 ## Phase 3: Production-Ready
-- [x] Guide 06: Security & Authentication
+- [x] Guide 06: Security & Authentication (deep dive: OAuth, RBAC, prompt injection, audit logging)
 - [x] Guide 07: Production Deployment
 - [x] Guide 08: Performance & Optimization
 - [ ] Docker deployment examples

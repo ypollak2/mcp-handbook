@@ -135,8 +135,8 @@ npx @modelcontextprotocol/inspector python server.py
 | 02 | [Tools, Resources & Prompts](guides/02-core-concepts.md) | Beginner | The three building blocks of MCP servers |
 | 03 | [Architecture Patterns](guides/03-architecture-patterns.md) | Intermediate | Server design patterns for common use cases |
 | 04 | [Error Handling](guides/04-error-handling.md) | Intermediate | Graceful failures, retries, and user-friendly errors |
-| 05 | [Testing MCP Servers](guides/05-testing.md) | Intermediate | Unit, integration, and end-to-end testing strategies |
-| 06 | [Security & Auth](guides/06-security.md) | Advanced | Credential management, input validation, sandboxing |
+| 05 | [Testing MCP Servers](guides/05-testing.md) | Intermediate | Test harness, mocking, property-based testing, CI/CD pipelines |
+| 06 | [Security & Auth](guides/06-security.md) | Advanced | OAuth, RBAC, prompt injection defense, audit logging, SSRF prevention |
 | 07 | [Production Deployment](guides/07-production.md) | Advanced | Docker, monitoring, scaling, and reliability |
 | 08 | [Performance & Optimization](guides/08-performance.md) | Advanced | Caching, pagination, streaming large datasets |
 | 09 | [Debugging](guides/09-debugging.md) | Intermediate | Inspector, logging, common issues and fixes |
@@ -261,8 +261,8 @@ What does your server do?
 - [x] Quick Start guides (TypeScript + Python)
 - [x] Core concept explanations (Tools, Resources, Prompts)
 - [x] Architecture patterns guide
-- [ ] Security & authentication deep dive
-- [ ] Testing framework and helpers
+- [x] Security & authentication deep dive
+- [x] Testing framework and helpers
 - [ ] Production deployment guide (Docker, monitoring)
 - [ ] Performance optimization guide
 - [ ] Video walkthroughs
