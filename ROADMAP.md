@@ -1,27 +1,27 @@
 # Roadmap
 
-## Phase 1: Foundation (current)
+## Phase 1: Foundation
 - [x] README with quick start (TypeScript + Python)
 - [x] Guide 01: Getting Started
 - [x] Guide 02: Core Concepts (Tools, Resources, Prompts)
 - [x] Guide 03: Architecture Patterns
-- [ ] Example: Database Explorer (TypeScript)
-- [ ] Example: REST API Wrapper (TypeScript)
-- [ ] Example: File Search (Python)
-- [ ] Template: Minimal Server (TypeScript + Python)
+- [x] Example: Database Explorer (TypeScript)
+- [x] Example: REST API Wrapper (TypeScript)
+- [x] Example: File Search (Python)
+- [x] Example: Web Scraper (Python)
+- [x] Template: Minimal Server (TypeScript + Python)
 
 ## Phase 2: Intermediate
-- [ ] Guide 04: Error Handling
-- [ ] Guide 05: Testing MCP Servers
-- [ ] Example: Web Scraper (Python)
+- [x] Guide 04: Error Handling
+- [x] Guide 05: Testing MCP Servers
 - [ ] Template: API Wrapper (TypeScript)
 - [ ] Template: Database Server (TypeScript)
 - [ ] MCP Inspector guide and tips
 
 ## Phase 3: Production-Ready
-- [ ] Guide 06: Security & Authentication
-- [ ] Guide 07: Production Deployment
-- [ ] Guide 08: Performance & Optimization
+- [x] Guide 06: Security & Authentication
+- [x] Guide 07: Production Deployment
+- [x] Guide 08: Performance & Optimization
 - [ ] Docker deployment examples
 - [ ] Monitoring and observability setup
 
