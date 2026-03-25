@@ -140,6 +140,7 @@ npx @modelcontextprotocol/inspector python server.py
 | 07 | [Production Deployment](guides/07-production.md) | Advanced | Docker, monitoring, scaling, and reliability |
 | 08 | [Performance & Optimization](guides/08-performance.md) | Advanced | Caching, pagination, streaming large datasets |
 | 09 | [Debugging](guides/09-debugging.md) | Intermediate | Inspector, logging, common issues and fixes |
+| 10 | [Advanced Topics](guides/10-advanced-topics.md) | Advanced | Sampling, elicitation, OAuth, HTTP transport, subscriptions |
 
 ## Examples
 
