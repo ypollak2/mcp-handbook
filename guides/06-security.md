@@ -574,14 +574,130 @@ app.post("/mcp", async (req, res) => {
 });
 ```
 
-### Pattern 3: OAuth 2.1 (Full Flow)
+### Pattern 3: OAuth 2.1 with the MCP SDK (Spec-Compliant)
 
-For servers that need to authenticate users with third-party services (GitHub, Google, etc.):
+The MCP spec mandates OAuth 2.1 with **PKCE (S256 required)**, **Dynamic Client Registration**, and **Bearer tokens**. Both SDKs have built-in support.
+
+#### Python — Using `OAuthAuthorizationServerProvider`
+
+The Python SDK provides a full OAuth server framework. You implement the provider protocol:
+
+```python
+from mcp.server.auth.provider import (
+    OAuthAuthorizationServerProvider,
+    AuthorizationCode,
+    AuthorizationParams,
+    RefreshToken,
+    AccessToken,
+)
+from mcp.shared.auth import OAuthClientInformationFull, OAuthToken
+from mcp.server.auth.settings import AuthSettings, ClientRegistrationOptions, RevocationOptions
+import secrets
+import time
+
+
+class MyOAuthProvider(OAuthAuthorizationServerProvider):
+    """Implement this protocol to provide OAuth 2.1 for your MCP server."""
+
+    async def get_client(self, client_id: str) -> OAuthClientInformationFull | None:
+        return await self.db.find_client(client_id)
+
+    async def register_client(self, client_info: OAuthClientInformationFull) -> None:
+        await self.db.store_client(client_info)
+
+    async def authorize(
+        self, client: OAuthClientInformationFull, params: AuthorizationParams
+    ) -> str:
+        # Return a URL to redirect the user to your login page
+        # params.code_challenge contains the PKCE challenge (S256)
+        return f"https://auth.example.com/login?client_id={client.client_id}&state={params.state}"
+
+    async def exchange_authorization_code(
+        self, client: OAuthClientInformationFull, authorization_code: AuthorizationCode
+    ) -> OAuthToken:
+        # Generate tokens after successful auth
+        access_token = secrets.token_urlsafe(32)
+        refresh_token = secrets.token_urlsafe(32)
+
+        return OAuthToken(
+            access_token=access_token,
+            token_type="Bearer",
+            expires_in=3600,
+            refresh_token=refresh_token,
+            scope="mcp:read mcp:write",
+        )
+
+    async def exchange_refresh_token(
+        self, client: OAuthClientInformationFull, refresh_token: RefreshToken, scopes: list[str]
+    ) -> OAuthToken:
+        # Rotate BOTH tokens on refresh (security best practice)
+        new_access = secrets.token_urlsafe(32)
+        new_refresh = secrets.token_urlsafe(32)
+
+        return OAuthToken(
+            access_token=new_access,
+            token_type="Bearer",
+            expires_in=3600,
+            refresh_token=new_refresh,
+            scope=" ".join(scopes),
+        )
+
+
+# Wire it up with the MCP server
+from mcp.server.mcpserver.server import MCPServer
+
+app = MCPServer(
+    name="my-secure-server",
+    auth=AuthSettings(
+        issuer_url="https://auth.example.com",
+        resource_server_url="https://api.example.com/mcp",
+        required_scopes=["mcp:read"],
+        client_registration_options=ClientRegistrationOptions(
+            enabled=True,
+            valid_scopes=["mcp:read", "mcp:write", "mcp:admin"],
+            default_scopes=["mcp:read"],
+        ),
+        revocation_options=RevocationOptions(enabled=True),
+    ),
+    auth_server_provider=MyOAuthProvider(),
+)
+```
+
+The SDK automatically creates routes for `/.well-known/oauth-authorization-server`, `/authorize`, `/token`, `/register`, and `/revoke`.
+
+#### TypeScript — Using `better-auth` with MCP Plugin
+
+```typescript
+import { betterAuth } from "better-auth";
+import { mcp } from "better-auth/plugins";
+
+const auth = betterAuth({
+  baseURL: "https://auth.example.com",
+  database: db,
+  emailAndPassword: { enabled: true },
+  plugins: [
+    mcp({
+      loginPage: "/sign-in",
+      resource: "https://api.example.com/mcp",
+      oidcConfig: {
+        codeExpiresIn: 600,
+        accessTokenExpiresIn: 3600,
+        refreshTokenExpiresIn: 604_800,
+        scopes: ["openid", "profile", "mcp:read", "mcp:write"],
+        allowDynamicClientRegistration: true,
+      },
+    }),
+  ],
+});
+```
+
+#### Simpler: OAuth via Elicitation (Client-Side Flow)
+
+For servers that need users to authenticate with third-party services:
 
 ```typescript
 import crypto from "crypto";
 
-// Step 1: Tool that initiates the OAuth flow
 server.tool(
   "connect_github",
   "Connect your GitHub account",
@@ -589,7 +705,7 @@ server.tool(
   async (_, { server: srv }) => {
     const state = crypto.randomUUID();
 
-    // Use elicitation to redirect the user to GitHub's auth page
+    // Elicitation opens the auth URL in the user's browser
     const result = await srv.server.elicitInput({
       message: "Please authorize access to your GitHub account",
       url: `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&state=${state}&scope=repo`,
@@ -602,26 +718,6 @@ server.tool(
     return { content: [{ type: "text", text: "GitHub account connected." }] };
   }
 );
-
-// Step 2: Token exchange (server-side callback handler)
-async function handleOAuthCallback(code: string, state: string): Promise<string> {
-  const response = await fetch("https://github.com/login/oauth/access_token", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      client_id: GITHUB_CLIENT_ID,
-      client_secret: GITHUB_CLIENT_SECRET,
-      code,
-      state,
-    }),
-  });
-
-  const data = await response.json() as { access_token: string };
-  return data.access_token;
-}
 ```
 
 ### Pattern 4: Token Refresh
@@ -682,7 +778,42 @@ class TokenManager {
 
 ## Role-Based Access Control (RBAC)
 
-Different users or sessions may have different permissions. Implement this at the tool registration level.
+Different users or sessions may have different permissions. The MCP spec supports this through **OAuth scopes** — the SDK's auth middleware enforces `required_scopes` on every request, and you can enforce per-tool scopes.
+
+### Python — Scope-Based Access (SDK-Native)
+
+```python
+from mcp.server.auth.middleware.auth_context import get_access_token
+
+def require_scope(scope: str):
+    """Decorator that checks OAuth scopes before executing a tool."""
+    def decorator(func):
+        async def wrapper(*args, **kwargs):
+            token = get_access_token()
+            if not token or scope not in token.scopes:
+                raise PermissionError(
+                    f"Insufficient permissions. Required: {scope}. "
+                    f"Available: {token.scopes if token else 'none'}"
+                )
+            return await func(*args, **kwargs)
+        wrapper.__name__ = func.__name__
+        wrapper.__doc__ = func.__doc__
+        return wrapper
+    return decorator
+
+@mcp.tool()
+@require_scope("mcp:read")
+async def list_items() -> str:
+    """List items (requires mcp:read)."""
+    return json.dumps(await db.list_items())
+
+@mcp.tool()
+@require_scope("mcp:admin")
+async def delete_all_items() -> str:
+    """Delete all items (requires mcp:admin)."""
+    await db.delete_all()
+    return "All items deleted."
+```
 
 ### TypeScript — Permission-Based Tool Registration
 
@@ -773,7 +904,42 @@ async def delete_record(table: str, record_id: str, ctx=None) -> str:
 
 ## Transport Security
 
-When using Streamable HTTP transport, always use TLS in production.
+When using Streamable HTTP transport, always use TLS in production. The MCP SDKs also include built-in DNS rebinding protection.
+
+### SDK-Built-In: DNS Rebinding Protection
+
+Both SDKs validate `Host` and `Origin` headers to prevent DNS rebinding attacks:
+
+```python
+# Python — TransportSecuritySettings
+from mcp.server.transport_security import TransportSecuritySettings
+
+settings = TransportSecuritySettings(
+    enable_dns_rebinding_protection=True,
+    allowed_hosts=["api.example.com", "localhost:*"],
+    allowed_origins=["https://app.example.com", "http://localhost:*"],
+)
+```
+
+```typescript
+// TypeScript — Host header validation middleware
+import {
+  hostHeaderValidationResponse,
+  localhostAllowedHostnames,
+} from "@modelcontextprotocol/sdk/server/middleware/hostHeaderValidation.js";
+
+app.use((req, res, next) => {
+  const error = hostHeaderValidationResponse(req, [
+    "api.example.com",
+    ...localhostAllowedHostnames(),
+  ]);
+  if (error) return res.status(403).json(error);
+  next();
+});
+```
+
+> [!IMPORTANT]
+> Local servers SHOULD bind to `127.0.0.1`, not `0.0.0.0`. Binding to all interfaces exposes your MCP server to the entire network.
 
 ### HTTPS with Node.js
 
